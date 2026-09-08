@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F4EE" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Nestly" />
+  <title>Nestly MVP 0.2</title>
+  <style>
+    :root{
+      --bg:#F7F4EE;--card:#FFFCF7;--ink:#222421;--muted:#7B7E77;--line:#E7E1D7;
+      --accent:#6F8B6B;--accent2:#DDE7D8;--danger:#B65B55;--shadow:0 10px 30px rgba(42,45,40,.08);
+      --r:22px;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Helvetica Neue",sans-serif}
+    body{min-height:100vh;padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+    button,input,select,textarea{font:inherit;color:inherit}
+    button{border:0;background:none}
+    .app{max-width:620px;margin:0 auto;min-height:100vh}
+    header{position:sticky;top:0;z-index:10;background:rgba(247,244,238,.92);backdrop-filter:blur(18px);padding:calc(12px + env(safe-area-inset-top)) 20px 12px;border-bottom:1px solid rgba(231,225,215,.7)}
+    .eyebrow{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+    .title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-top:5px}
+    h1{font-size:28px;line-height:1.1;margin:0;font-weight:750;letter-spacing:-.02em}
+    .date-btn{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 12px;font-weight:650}
+    main{padding:18px 18px 24px}
+    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    .metric{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:13px 12px;min-height:76px}
+    .metric .k{font-size:12px;color:var(--muted)}
+    .metric .v{font-size:20px;font-weight:750;margin-top:5px}.metric .u{font-size:11px;color:var(--muted);margin-left:2px}
+    .section-title{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 10px}
+    .section-title h2{font-size:17px;margin:0}.section-title span{font-size:13px;color:var(--muted)}
+    .timeline{display:flex;flex-direction:column;gap:10px}
+    .record{display:grid;grid-template-columns:54px 46px 1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:13px 12px;box-shadow:0 4px 16px rgba(42,45,40,.03)}
+    .time{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+    .icon{width:42px;height:42px;border-radius:14px;background:var(--accent2);display:grid;place-items:center;font-size:22px}
+    .record h3{font-size:15px;margin:0 0 3px;font-weight:720}.record p{font-size:13px;color:var(--muted);margin:0;line-height:1.35}
+    .chev{color:#AAA59B;font-size:20px;padding:6px}
+    .empty{background:var(--card);border:1px dashed #D7D0C5;border-radius:22px;padding:34px 20px;text-align:center;color:var(--muted)}
+    .empty .big{font-size:34px;margin-bottom:8px}.empty strong{display:block;color:var(--ink);margin-bottom:4px}
+    .fab{position:fixed;z-index:30;left:50%;transform:translateX(-50%);bottom:calc(82px + env(safe-area-inset-bottom));width:min(300px,calc(100vw - 44px));height:58px;border-radius:19px;background:var(--ink);color:#fff;font-size:17px;font-weight:750;box-shadow:0 12px 30px rgba(34,36,33,.25)}
+    nav{position:fixed;z-index:20;bottom:0;left:0;right:0;background:rgba(255,252,247,.96);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:8px max(18px,calc((100vw - 620px)/2 + 18px)) calc(8px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(3,1fr)}
+    .nav-btn{padding:8px 6px;border-radius:12px;color:var(--muted);font-size:12px}.nav-btn .ni{display:block;font-size:20px;margin-bottom:2px}.nav-btn.active{color:var(--ink);font-weight:700}
+    .screen{display:none}.screen.active{display:block}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px}
+    .card h3{margin:0 0 10px;font-size:16px}.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}.row:first-of-type{border-top:0}
+    .row small{color:var(--muted);display:block;margin-top:2px}.action{background:var(--accent2);color:#344032;border-radius:12px;padding:9px 12px;font-weight:700}
+    .danger{color:var(--danger)}
+    .sheet-wrap{position:fixed;inset:0;z-index:100;display:none}.sheet-wrap.open{display:block}.scrim{position:absolute;inset:0;background:rgba(28,30,27,.35);backdrop-filter:blur(2px)}
+    .sheet{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(620px,100%);max-height:91vh;overflow:auto;background:var(--card);border-radius:28px 28px 0 0;padding:12px 18px calc(22px + env(safe-area-inset-bottom));box-shadow:var(--shadow)}
+    .handle{width:42px;height:5px;border-radius:99px;background:#D8D2C8;margin:2px auto 14px}.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.sheet-head h2{margin:0;font-size:20px}.close{font-size:24px;color:var(--muted);padding:6px}
+    .types{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:8px 0 18px}.type-btn{background:#F5F1EA;border:1px solid var(--line);border-radius:18px;padding:12px 4px 10px;min-height:78px}.type-btn .ti{font-size:26px;display:block}.type-btn .tl{font-size:12px;margin-top:5px}.type-btn.selected{background:var(--accent2);border-color:#BFD0B9;box-shadow:inset 0 0 0 1px #BFD0B9}
+    .form{display:grid;gap:12px}.field label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 3px}.control{width:100%;border:1px solid var(--line);background:#fff;border-radius:15px;padding:13px 14px;min-height:48px;outline:none}.control:focus{border-color:#AEBEA9;box-shadow:0 0 0 3px rgba(111,139,107,.12)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.presets{display:flex;gap:8px;overflow:auto;padding-bottom:2px}.pill{white-space:nowrap;border:1px solid var(--line);background:#F5F1EA;border-radius:999px;padding:9px 13px;font-size:13px}.pill.on{background:var(--accent2);border-color:#BFD0B9}
+    .save{width:100%;height:54px;border-radius:17px;background:var(--accent);color:#fff;font-weight:760;font-size:16px;margin-top:6px}.delete-btn{width:100%;padding:13px;color:var(--danger);font-weight:700}
+    .hist-group{margin-bottom:18px}.hist-date{font-size:13px;color:var(--muted);font-weight:700;margin:0 0 8px 4px}
+    .note{font-size:12px;color:var(--muted);line-height:1.55}
+    input[type=file]{display:none}
+    @media (max-width:390px){.summary{grid-template-columns:repeat(3,1fr);gap:7px}.metric{padding:11px 9px}.metric .v{font-size:18px}.types{grid-template-columns:repeat(4,1fr);gap:7px}.record{grid-template-columns:48px 42px 1fr auto;gap:8px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="eyebrow">Nestly · MVP 0.2</div>
+    <div class="title-row"><h1 id="screenTitle">今天</h1><button class="date-btn" id="dateBtn">今天 ▾</button></div>
+  </header>
+  <main>
+    <section id="today" class="screen active">
+      <div class="summary">
+        <div class="metric"><div class="k">奶</div><div class="v" id="sumMilk">0<span class="u">ml</span></div></div>
+        <div class="metric"><div class="k">水</div><div class="v" id="sumWater">0<span class="u">ml</span></div></div>
+        <div class="metric"><div class="k">排便</div><div class="v" id="sumPoop">0<span class="u">次</span></div></div>
+      </div>
+      <div class="section-title"><h2>今天的時間線</h2><span id="countLabel">0 筆</span></div>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <section id="history" class="screen">
+      <div class="section-title"><h2>歷史紀錄</h2><span id="historyCount">0 筆</span></div>
+      <div id="historyList"></div>
+    </section>
+
+    <section id="data" class="screen">
+      <div class="card">
+        <h3>寶寶資料</h3>
+        <div class="row"><div><strong id="babyNameLabel">寶寶</strong><small>顯示名稱</small></div><button class="action" id="renameBtn">修改</button></div>
+      </div>
+      <div class="card">
+        <h3>資料</h3>
+        <div class="row"><div><strong>匯出備份</strong><small>下載 JSON，可之後匯回</small></div><button class="action" id="exportBtn">匯出</button></div>
+        <div class="row"><div><strong>匯入備份</strong><small>合併同一份 Nestly 紀錄</small></div><button class="action" id="importBtn">匯入</button><input id="importFile" type="file" accept="application/json"></div>
+        <div class="row"><div><strong>清除全部紀錄</strong><small>僅清除這台裝置上的資料</small></div><button class="action danger" id="clearBtn">清除</button></div>
+      </div>
+      <div class="card"><h3>執行狀態</h3><div class="row"><div><strong id="storageStatus">資料保存正常</strong><small>使用瀏覽器本機儲存</small></div><span id="storageDot">●</span></div></div>
+      <div class="card"><h3>這版刻意先不做</h3><div class="note">帳號、夫妻即時同步、AI 判讀與醫療警示先不放進 0.1。目標是先驗證：你們是否真的願意每天使用，以及常用紀錄能不能在 5 秒內完成。</div></div>
+    </section>
+  </main>
+</div>
+<button class="fab" id="addBtn">＋ 快速記錄</button>
+<nav>
+  <button class="nav-btn active" data-screen="today"><span class="ni">◷</span>今天</button>
+  <button class="nav-btn" data-screen="history"><span class="ni">☰</span>歷史</button>
+  <button class="nav-btn" data-screen="data"><span class="ni">●</span>資料</button>
+</nav>
+
+<div class="sheet-wrap" id="sheetWrap" aria-hidden="true">
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-head"><h2 id="sheetTitle">快速記錄</h2><button class="close" id="closeSheet">×</button></div>
+    <div class="types" id="types"></div>
+    <form id="recordForm" class="form"></form>
+  </div>
+</div>
+
+<script>
+const TYPES={
+  milk:{label:'奶',icon:'🍼'}, water:{label:'水',icon:'💧'}, food:{label:'食物',icon:'🥣'}, pee:{label:'尿尿',icon:'💦'}, poop:{label:'大便',icon:'💩'}, sleep:{label:'睡眠',icon:'🌙'}, growth:{label:'成長',icon:'⚖️'}
+};
+const STORE='nestly_records_v02', PROFILE='nestly_profile_v02';
+let storageOK=true;
+let records=read(STORE,[]), profile=read(PROFILE,{babyName:'寶寶'}), currentScreen='today', selectedType='milk', editId=null;
+function read(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch{storageOK=false;return f}}
+function write(){
+  try{localStorage.setItem(STORE,JSON.stringify(records));localStorage.setItem(PROFILE,JSON.stringify(profile));storageOK=true}
+  catch(e){storageOK=false; console.warn('Nestly storage unavailable',e)}
+}
+
+function pad(n){return String(n).padStart(2,'0')}
+function localDate(d=new Date()){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function localTime(d=new Date()){return `${pad(d.getHours())}:${pad(d.getMinutes())}`}
+function esc(s=''){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function todayRecords(){const t=localDate();return records.filter(r=>r.date===t).sort(sortDesc)}
+function sortDesc(a,b){return (b.date+b.time).localeCompare(a.date+a.time)}
+function detail(r){
+  if(r.type==='milk') return `${r.milkKind||'奶'} ${r.amount||0} ml${r.note?' · '+r.note:''}`;
+  if(r.type==='water') return `${r.amount||0} ml${r.note?' · '+r.note:''}`;
+  if(r.type==='food') return `${r.amount||0} g${r.foodName?' · '+r.foodName:''}`;
+  if(r.type==='pee') return `${r.peeAmount||'有'}${r.note?' · '+r.note:''}`;
+  if(r.type==='poop') return `${r.poopType||'未選型態'} · ${r.poopColor||'未選顏色'}${r.note?' · '+r.note:''}`;
+  if(r.type==='sleep') return `${r.startTime||r.time}–${r.endTime||'進行中'}${r.note?' · '+r.note:''}`;
+  if(r.type==='growth'){let a=[];if(r.weight)a.push(`${r.weight} kg`);if(r.height)a.push(`${r.height} cm`);if(r.head)a.push(`頭圍 ${r.head} cm`);return a.join(' · ')||'成長紀錄'}
+  return '';
+}
+function recordHTML(r){return `<div class="record" data-id="${r.id}"><div class="time">${esc(r.time)}</div><div class="icon">${TYPES[r.type].icon}</div><div><h3>${TYPES[r.type].label}</h3><p>${esc(detail(r))}</p></div><button class="chev" aria-label="編輯">›</button></div>`}
+function render(){
+  document.getElementById('babyNameLabel').textContent=profile.babyName||'寶寶'; const ss=document.getElementById('storageStatus'); const sd=document.getElementById('storageDot'); if(ss){ss.textContent=storageOK?'資料保存正常':'目前無法保存'; sd.textContent=storageOK?'●':'!';}
+  const t=todayRecords();
+  const milk=t.filter(r=>r.type==='milk').reduce((s,r)=>s+(+r.amount||0),0), water=t.filter(r=>r.type==='water').reduce((s,r)=>s+(+r.amount||0),0), poop=t.filter(r=>r.type==='poop').length;
+  document.getElementById('sumMilk').innerHTML=`${milk}<span class="u">ml</span>`;document.getElementById('sumWater').innerHTML=`${water}<span class="u">ml</span>`;document.getElementById('sumPoop').innerHTML=`${poop}<span class="u">次</span>`;
+  document.getElementById('countLabel').textContent=`${t.length} 筆`;
+  document.getElementById('timeline').innerHTML=t.length?t.map(recordHTML).join(''):`<div class="empty"><div class="big">◷</div><strong>今天還沒有紀錄</strong>按「快速記錄」新增第一筆。</div>`;
+  const sorted=[...records].sort(sortDesc);document.getElementById('historyCount').textContent=`${sorted.length} 筆`;
+  const groups={};sorted.forEach(r=>(groups[r.date]??=[]).push(r));
+  document.getElementById('historyList').innerHTML=Object.keys(groups).length?Object.entries(groups).map(([d,rs])=>`<div class="hist-group"><div class="hist-date">${d===localDate()?'今天 · ':''}${d}</div><div class="timeline">${rs.map(recordHTML).join('')}</div></div>`).join(''):`<div class="empty"><strong>還沒有歷史紀錄</strong>紀錄後會自動依日期整理。</div>`;
+  bindRecordClicks();
+}
+function bindRecordClicks(){document.querySelectorAll('.record').forEach(el=>el.onclick=()=>openEdit(el.dataset.id))}
+function typeButtons(){document.getElementById('types').innerHTML=Object.entries(TYPES).map(([k,v])=>`<button type="button" class="type-btn ${k===selectedType?'selected':''}" data-type="${k}"><span class="ti">${v.icon}</span><span class="tl">${v.label}</span></button>`).join('');document.querySelectorAll('.type-btn').forEach(b=>b.onclick=()=>{selectedType=b.dataset.type;editId=null;buildForm();typeButtons()})}
+function baseFields(r={}){return `<div class="grid2"><div class="field"><label>日期</label><input class="control" type="date" name="date" value="${r.date||localDate()}" required></div><div class="field"><label>時間</label><input class="control" type="time" name="time" value="${r.time||localTime()}" required></div></div>`}
+function notes(r={}){return `<div class="field"><label>備註（選填）</label><input class="control" name="note" value="${esc(r.note||'')}" placeholder="例如：外出、胃口較差"></div>`}
+function buildForm(r={}){
+  const f=document.getElementById('recordForm');let h=baseFields(r);
+  if(selectedType==='milk')h+=`<div class="field"><label>奶類</label><div class="presets">${['配方奶','鮮奶','母乳'].map(x=>`<button type="button" class="pill kind ${r.milkKind===x||(!r.milkKind&&x==='配方奶')?'on':''}" data-v="${x}">${x}</button>`).join('')}</div><input type="hidden" name="milkKind" value="${r.milkKind||'配方奶'}"></div><div class="field"><label>奶量 ml</label><input class="control" type="number" inputmode="decimal" name="amount" value="${r.amount||''}" placeholder="例如 180" required></div><div class="presets">${[120,150,180,210].map(x=>`<button type="button" class="pill amount" data-v="${x}">${x} ml</button>`).join('')}</div>${notes(r)}`;
+  if(selectedType==='water')h+=`<div class="field"><label>飲水量 ml</label><input class="control" type="number" inputmode="decimal" name="amount" value="${r.amount||''}" placeholder="例如 60" required></div><div class="presets">${[30,60,90,120].map(x=>`<button type="button" class="pill amount" data-v="${x}">${x} ml</button>`).join('')}</div>${notes(r)}`;
+  if(selectedType==='food')h+=`<div class="grid2"><div class="field"><label>食物重量 g</label><input class="control" type="number" inputmode="decimal" name="amount" value="${r.amount||''}" placeholder="105" required></div><div class="field"><label>餐點</label><input class="control" name="foodName" value="${esc(r.foodName||'')}" placeholder="晚餐"></div></div>${notes(r)}`;
+  if(selectedType==='pee')h+=`<div class="field"><label>尿量</label><div class="presets">${['少量','正常','多量'].map(x=>`<button type="button" class="pill set" data-name="peeAmount" data-v="${x}">${x}</button>`).join('')}</div><input type="hidden" name="peeAmount" value="${r.peeAmount||'正常'}"></div>${notes(r)}`;
+  if(selectedType==='poop')h+=`<div class="field"><label>型態</label><div class="presets">${['硬便','成形','軟便','糊狀','水便'].map(x=>`<button type="button" class="pill set ${r.poopType===x?'on':''}" data-name="poopType" data-v="${x}">${x}</button>`).join('')}</div><input type="hidden" name="poopType" value="${r.poopType||'軟便'}"></div><div class="field"><label>顏色</label><div class="presets">${['黃','黃綠','綠','褐','深色'].map(x=>`<button type="button" class="pill set ${r.poopColor===x?'on':''}" data-name="poopColor" data-v="${x}">${x}</button>`).join('')}</div><input type="hidden" name="poopColor" value="${r.poopColor||'黃'}"></div>${notes(r)}`;
+  if(selectedType==='sleep')h+=`<div class="grid2"><div class="field"><label>開始</label><input class="control" type="time" name="startTime" value="${r.startTime||r.time||localTime()}"></div><div class="field"><label>結束（可空白）</label><input class="control" type="time" name="endTime" value="${r.endTime||''}"></div></div>${notes(r)}`;
+  if(selectedType==='growth')h+=`<div class="field"><label>體重 kg</label><input class="control" type="number" step="0.01" inputmode="decimal" name="weight" value="${r.weight||''}" placeholder="10.8"></div><div class="grid2"><div class="field"><label>身高 cm</label><input class="control" type="number" step="0.1" inputmode="decimal" name="height" value="${r.height||''}" placeholder="78"></div><div class="field"><label>頭圍 cm</label><input class="control" type="number" step="0.1" inputmode="decimal" name="head" value="${r.head||''}" placeholder="46"></div></div>${notes(r)}`;
+  h+=`<button class="save" type="submit">${editId?'儲存修改':'完成記錄'}</button>${editId?'<button class="delete-btn" type="button" id="deleteRecord">刪除這筆紀錄</button>':''}`;f.innerHTML=h;bindFormHelpers();
+}
+function bindFormHelpers(){
+  document.querySelectorAll('.pill.amount').forEach(b=>b.onclick=()=>{document.querySelector('[name=amount]').value=b.dataset.v});
+  document.querySelectorAll('.pill.kind').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pill.kind').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.querySelector('[name=milkKind]').value=b.dataset.v});
+  document.querySelectorAll('.pill.set').forEach(b=>b.onclick=()=>{const n=b.dataset.name;document.querySelectorAll(`.pill.set[data-name="${n}"]`).forEach(x=>x.classList.remove('on'));b.classList.add('on');document.querySelector(`[name="${n}"]`).value=b.dataset.v});
+  const del=document.getElementById('deleteRecord');if(del)del.onclick=()=>{if(confirm('刪除這筆紀錄？')){records=records.filter(x=>x.id!==editId);write();closeSheet();render()}};
+}
+function openSheet(type='milk'){editId=null;selectedType=type;document.getElementById('sheetTitle').textContent='快速記錄';document.getElementById('sheetWrap').classList.add('open');document.getElementById('sheetWrap').setAttribute('aria-hidden','false');typeButtons();buildForm()}
+function openEdit(id){const r=records.find(x=>x.id===id);if(!r)return;editId=id;selectedType=r.type;document.getElementById('sheetTitle').textContent='編輯紀錄';document.getElementById('sheetWrap').classList.add('open');typeButtons();buildForm(r)}
+function closeSheet(){document.getElementById('sheetWrap').classList.remove('open');document.getElementById('sheetWrap').setAttribute('aria-hidden','true');editId=null}
+document.getElementById('recordForm').onsubmit=e=>{e.preventDefault();const fd=new FormData(e.target), obj=Object.fromEntries(fd.entries());obj.type=selectedType;obj.id=editId||String(Date.now())+Math.random().toString(16).slice(2);if(selectedType==='sleep'&&obj.startTime)obj.time=obj.startTime;const idx=records.findIndex(r=>r.id===obj.id);if(idx>=0)records[idx]=obj;else records.push(obj);write();closeSheet();render()};
+document.getElementById('addBtn').onclick=()=>openSheet('milk');document.getElementById('scrim').onclick=closeSheet;document.getElementById('closeSheet').onclick=closeSheet;
+document.querySelectorAll('.nav-btn').forEach(b=>b.onclick=()=>{currentScreen=b.dataset.screen;document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===currentScreen));document.getElementById('screenTitle').textContent=currentScreen==='today'?'今天':currentScreen==='history'?'歷史':'資料';document.getElementById('dateBtn').style.visibility=currentScreen==='today'?'visible':'hidden';document.getElementById('addBtn').style.display=currentScreen==='data'?'none':'block'});
+document.getElementById('dateBtn').onclick=()=>{const d=prompt('目前 MVP 先固定顯示今天。\n若要找舊資料請使用「歷史」。','');};
+document.getElementById('renameBtn').onclick=()=>{const n=prompt('寶寶顯示名稱',profile.babyName||'寶寶');if(n&&n.trim()){profile.babyName=n.trim();write();render()}};
+document.getElementById('exportBtn').onclick=()=>{const data={version:'0.2',exportedAt:new Date().toISOString(),profile,records};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`nestly-backup-${localDate()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();document.getElementById('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!Array.isArray(d.records))throw 0;const map=new Map(records.map(x=>[x.id,x]));d.records.forEach(x=>map.set(x.id,x));records=[...map.values()];if(d.profile)profile=d.profile;write();render();alert('匯入完成')}catch{alert('這不是有效的 Nestly 備份檔')}};rd.readAsText(f)};
+document.getElementById('clearBtn').onclick=()=>{if(confirm('確定要清除這台裝置上的全部紀錄？建議先匯出備份。')){records=[];write();render()}};
+render();
+</script>
+</body>
+</html>
