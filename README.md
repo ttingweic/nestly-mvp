@@ -17,3 +17,7 @@ NESTLY_URL=https://ttingweic.github.io/nestly-mvp/ node records.test.cjs
 ```
 
 The test covers legacy data, multi-ingredient meals, urine color, edits, deletion, reload persistence and milk totals. Test data only goes into the isolated browser's local storage.
+
+## 0.2.2
+
+睡眠只保留日期、開始時間、結束時間及備註。開始睡眠後顯示「睡眠中」，補上結束時間可結束睡眠並顯示時長。結束時間早於開始時間時視為隔日；其他紀錄表單維持原樣。沿用舊儲存格式，舊睡眠以 startTime 或 time 作為開始時間，載入時不改寫資料。

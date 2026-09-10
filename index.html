@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Nestly" />
-  <title>Nestly MVP 0.2.1</title>
+  <title>Nestly MVP 0.2.2</title>
   <style>
     :root{
       --bg:#F7F4EE;--card:#FFFCF7;--ink:#222421;--muted:#7B7E77;--line:#E7E1D7;
@@ -65,7 +65,7 @@
 <body>
 <div class="app">
   <header>
-    <div class="eyebrow">Nestly · MVP 0.2.1</div>
+    <div class="eyebrow">Nestly · MVP 0.2.2</div>
     <div class="title-row"><h1 id="screenTitle">今天</h1><button class="date-btn" id="dateBtn">今天 ▾</button></div>
   </header>
   <main>
@@ -143,17 +143,27 @@ function bindIngredients(){
   const rows=document.querySelectorAll('.ingredient');
   rows.forEach((row,i)=>{row.querySelector('strong').textContent=`食材 ${i+1}`;const button=row.querySelector('.remove-ingredient');button.hidden=rows.length===1;button.onclick=()=>{row.remove();bindIngredients()}});
 }
+function sleepDetail(r){
+  const start=r.startTime||r.time;
+  if(!r.endTime)return `${start} 開始${r.note?' · '+r.note:''}`;
+  const minutes=t=>{const [h,m]=t.split(':').map(Number);return h*60+m};
+  const overnight=minutes(r.endTime)<minutes(start);
+  const duration=minutes(r.endTime)-minutes(start)+(overnight?1440:0);
+  const hours=Math.floor(duration/60), remainder=duration%60;
+  return `${start}–${overnight?'隔日 ':''}${r.endTime}｜${hours?hours+' 小時 ':''}${remainder} 分${r.note?' · '+r.note:''}`;
+}
+function sleepSaveLabel(r={}){return document.querySelector('[name=endTime]')?.value?(r.endTime?'儲存修改':'結束睡眠'):(editId?'儲存修改':'開始睡眠')}
 function detail(r){
   if(r.type==='milk') return `${r.milkKind||'奶'} ${r.amount||0} ml${r.note?' · '+r.note:''}`;
   if(r.type==='water') return `${r.amount||0} ml${r.note?' · '+r.note:''}`;
   if(r.type==='food') return foodItems(r).map(x=>`${x.name||'未命名食材'} ${x.amount||0} g`).join('、')+(r.note?' · '+r.note:'');
   if(r.type==='pee') return `${r.peeAmount||'有'} · ${r.peeColor||'未記錄顏色'}${r.note?' · '+r.note:''}`;
   if(r.type==='poop') return `${r.poopType||'未選型態'} · ${r.poopColor||'未選顏色'}${r.note?' · '+r.note:''}`;
-  if(r.type==='sleep') return `${r.startTime||r.time}–${r.endTime||'進行中'}${r.note?' · '+r.note:''}`;
+  if(r.type==='sleep') return sleepDetail(r);
   if(r.type==='growth'){let a=[];if(r.weight)a.push(`${r.weight} kg`);if(r.height)a.push(`${r.height} cm`);if(r.head)a.push(`頭圍 ${r.head} cm`);return a.join(' · ')||'成長紀錄'}
   return '';
 }
-function recordHTML(r){return `<div class="record" data-id="${r.id}"><div class="time">${esc(r.time)}</div><div class="icon">${TYPES[r.type].icon}</div><div><h3>${TYPES[r.type].label}</h3><p>${esc(detail(r))}</p></div><button class="chev" aria-label="編輯">›</button></div>`}
+function recordHTML(r){return `<div class="record" data-id="${r.id}"><div class="time">${esc(r.time)}</div><div class="icon">${TYPES[r.type].icon}</div><div><h3>${r.type==='sleep'&&!r.endTime?'睡眠中':TYPES[r.type].label}</h3><p>${esc(detail(r))}</p></div><button class="chev" aria-label="編輯">›</button></div>`}
 function render(){
   document.getElementById('babyNameLabel').textContent=profile.babyName||'寶寶'; const ss=document.getElementById('storageStatus'); const sd=document.getElementById('storageDot'); if(ss){ss.textContent=storageOK?'資料保存正常':'目前無法保存'; sd.textContent=storageOK?'●':'!';}
   const t=todayRecords();
@@ -171,15 +181,15 @@ function typeButtons(){document.getElementById('types').innerHTML=Object.entries
 function baseFields(r={}){return `<div class="grid2"><div class="field"><label>日期</label><input class="control" type="date" name="date" value="${r.date||localDate()}" required></div><div class="field"><label>時間</label><input class="control" type="time" name="time" value="${r.time||localTime()}" required></div></div>`}
 function notes(r={}){return `<div class="field"><label>備註（選填）</label><input class="control" name="note" value="${esc(r.note||'')}" placeholder="例如：外出、胃口較差"></div>`}
 function buildForm(r={}){
-  const f=document.getElementById('recordForm');let h=baseFields(r);
+  const f=document.getElementById('recordForm');let h=selectedType==='sleep'?`<div class="field"><label for="sleepDate">日期</label><input id="sleepDate" class="control" type="date" name="date" value="${esc(r.date||localDate())}" required></div>`:baseFields(r);
   if(selectedType==='milk')h+=`<div class="field"><label>奶類</label><div class="presets">${['配方奶','鮮奶','母乳'].map(x=>`<button type="button" class="pill kind ${r.milkKind===x||(!r.milkKind&&x==='配方奶')?'on':''}" data-v="${x}">${x}</button>`).join('')}</div><input type="hidden" name="milkKind" value="${r.milkKind||'配方奶'}"></div><div class="field"><label>奶量 ml</label><input class="control" type="number" inputmode="decimal" name="amount" value="${r.amount||''}" placeholder="例如 180" required></div><div class="presets">${[120,150,180,210].map(x=>`<button type="button" class="pill amount" data-v="${x}">${x} ml</button>`).join('')}</div>${notes(r)}`;
   if(selectedType==='water')h+=`<div class="field"><label>飲水量 ml</label><input class="control" type="number" inputmode="decimal" name="amount" value="${r.amount||''}" placeholder="例如 60" required></div><div class="presets">${[30,60,90,120].map(x=>`<button type="button" class="pill amount" data-v="${x}">${x} ml</button>`).join('')}</div>${notes(r)}`;
   if(selectedType==='food')h+=`<div class="field"><label>這一餐的食材</label><div id="ingredients">${foodItems(r).map(ingredientHTML).join('')}</div><button type="button" class="action" id="addIngredient">＋ 新增食材</button></div>${notes(r)}`;
   if(selectedType==='pee')h+=`<div class="field"><label>尿量</label><div class="presets">${['少量','正常','多量'].map(x=>`<button type="button" class="pill set ${(r.peeAmount||'正常')===x?'on':''}" data-name="peeAmount" data-v="${x}">${x}</button>`).join('')}</div><input type="hidden" name="peeAmount" value="${esc(r.peeAmount||'正常')}"></div><div class="field"><label for="peeColor">尿液顏色</label><select class="control" id="peeColor" name="peeColor">${['','透明','淡黃','黃色','深黃','橘色','粉紅／紅色','褐色','其他'].concat(r.peeColor&&!['透明','淡黃','黃色','深黃','橘色','粉紅／紅色','褐色','其他'].includes(r.peeColor)?[r.peeColor]:[]).map(x=>`<option value="${esc(x)}" ${(r.peeColor||'')===x?'selected':''}>${esc(x||'未記錄')}</option>`).join('')}</select></div>${notes(r)}`;
   if(selectedType==='poop')h+=`<div class="field"><label>型態</label><div class="presets">${['硬便','成形','軟便','糊狀','水便'].map(x=>`<button type="button" class="pill set ${r.poopType===x?'on':''}" data-name="poopType" data-v="${x}">${x}</button>`).join('')}</div><input type="hidden" name="poopType" value="${r.poopType||'軟便'}"></div><div class="field"><label>顏色</label><div class="presets">${['黃','黃綠','綠','褐','深色'].map(x=>`<button type="button" class="pill set ${r.poopColor===x?'on':''}" data-name="poopColor" data-v="${x}">${x}</button>`).join('')}</div><input type="hidden" name="poopColor" value="${r.poopColor||'黃'}"></div>${notes(r)}`;
-  if(selectedType==='sleep')h+=`<div class="grid2"><div class="field"><label>開始</label><input class="control" type="time" name="startTime" value="${r.startTime||r.time||localTime()}"></div><div class="field"><label>結束（可空白）</label><input class="control" type="time" name="endTime" value="${r.endTime||''}"></div></div>${notes(r)}`;
+  if(selectedType==='sleep')h+=`<div class="grid2"><div class="field"><label for="sleepStart">開始時間</label><input id="sleepStart" class="control" type="time" name="startTime" value="${esc(r.startTime||r.time||localTime())}" required></div><div class="field"><label for="sleepEnd">結束時間（可空白）</label><input id="sleepEnd" class="control" type="time" name="endTime" value="${esc(r.endTime||'')}"></div></div><div class="note">還在睡可先留空結束時間，醒來後再補上。結束早於開始時，視為隔日結束。</div>${notes(r)}`;
   if(selectedType==='growth')h+=`<div class="field"><label>體重 kg</label><input class="control" type="number" step="0.01" inputmode="decimal" name="weight" value="${r.weight||''}" placeholder="10.8"></div><div class="grid2"><div class="field"><label>身高 cm</label><input class="control" type="number" step="0.1" inputmode="decimal" name="height" value="${r.height||''}" placeholder="78"></div><div class="field"><label>頭圍 cm</label><input class="control" type="number" step="0.1" inputmode="decimal" name="head" value="${r.head||''}" placeholder="46"></div></div>${notes(r)}`;
-  h+=`<button class="save" type="submit">${editId?'儲存修改':'完成記錄'}</button>${editId?'<button class="delete-btn" type="button" id="deleteRecord">刪除這筆紀錄</button>':''}`;f.innerHTML=h;bindFormHelpers();
+  h+=`<button class="save" type="submit">${editId?'儲存修改':'完成記錄'}</button>${editId?'<button class="delete-btn" type="button" id="deleteRecord">刪除這筆紀錄</button>':''}`;f.innerHTML=h;bindFormHelpers();if(selectedType==='sleep'){const update=()=>{f.querySelector('.save').textContent=sleepSaveLabel(r)};f.elements.endTime.oninput=update;f.elements.endTime.onchange=update;update()}
 }
 function bindFormHelpers(){
   const addIngredient=document.getElementById('addIngredient');
@@ -202,7 +212,7 @@ document.getElementById('addBtn').onclick=()=>openSheet('milk');document.getElem
 document.querySelectorAll('.nav-btn').forEach(b=>b.onclick=()=>{currentScreen=b.dataset.screen;document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===currentScreen));document.getElementById('screenTitle').textContent=currentScreen==='today'?'今天':currentScreen==='history'?'歷史':'資料';document.getElementById('dateBtn').style.visibility=currentScreen==='today'?'visible':'hidden';document.getElementById('addBtn').style.display=currentScreen==='data'?'none':'block'});
 document.getElementById('dateBtn').onclick=()=>{const d=prompt('目前 MVP 先固定顯示今天。\n若要找舊資料請使用「歷史」。','');};
 document.getElementById('renameBtn').onclick=()=>{const n=prompt('寶寶顯示名稱',profile.babyName||'寶寶');if(n&&n.trim()){profile.babyName=n.trim();write();render()}};
-document.getElementById('exportBtn').onclick=()=>{const data={version:'0.2.1',exportedAt:new Date().toISOString(),profile,records};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`nestly-backup-${localDate()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+document.getElementById('exportBtn').onclick=()=>{const data={version:'0.2.2',exportedAt:new Date().toISOString(),profile,records};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`nestly-backup-${localDate()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();document.getElementById('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!Array.isArray(d.records))throw 0;const map=new Map(records.map(x=>[x.id,x]));d.records.forEach(x=>map.set(x.id,x));records=[...map.values()];if(d.profile)profile=d.profile;write();render();alert('匯入完成')}catch{alert('這不是有效的 Nestly 備份檔')}};rd.readAsText(f)};
 document.getElementById('clearBtn').onclick=()=>{if(confirm('確定要清除這台裝置上的全部紀錄？建議先匯出備份。')){records=[];write();render()}};
 render();
